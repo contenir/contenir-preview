@@ -7,8 +7,8 @@ the page that shows the record with those values in place of the stored ones.
 This package is framework-free and holds the parts both sides share. The renderer for each site
 framework lives in its own package:
 
-- [`contenir/contenir-preview-laminas-mvc`](../contenir-preview-laminas-mvc)
-- [`contenir/contenir-preview-mezzio`](../contenir-preview-mezzio)
+- [`contenir/contenir-preview-laminas-mvc`](https://github.com/contenir/contenir-preview-laminas-mvc)
+- `contenir/contenir-preview-mezzio` (planned)
 
 The protocol itself is in [docs/protocol.md](docs/protocol.md).
 

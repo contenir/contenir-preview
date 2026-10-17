@@ -14,16 +14,6 @@
         "infection/infection": "^0.35.6",
         "phpunit/phpunit": "^11.5"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../contenir-qa-tools",
-            "canonical": false,
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "autoload": {
         "psr-4": { "Contenir\\Preview\\": "src/" }
     },
