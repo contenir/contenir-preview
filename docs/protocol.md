@@ -136,8 +136,11 @@ Once verified, the token becomes a **preview request**: the section, the keys, t
 user. The renderer then:
 
 1. Finds the **resolver** the site registered for the section. A resolver says which of the
-   site's pages shows the record (a route and its parameters, or a path), usually from the
-   values (`/{slug}` for a page). No resolver → `404`, "This section has no preview on this site".
+   site's pages shows the record, usually from the values: a path (`/{slug}` for a page), a named
+   route and its parameters, or a **handler** and its parameters, which the site dispatches
+   without routing. A handler serves pages the router does not know: drafts, records not saved
+   yet, and sites whose routes are built from published records (such as contenir-workflow's).
+   No resolver → `404`, "This section has no preview on this site".
 2. Holds the preview request in a **preview context** for the rest of the request, so the site's
    data layer can lay the token's values over the stored record (or stand them in for a record not
    saved yet) wherever it loads that section's records.

@@ -49,26 +49,37 @@ token each time the preview refreshes: each is accepted once and lives five minu
 A framework adapter does this for you. Underneath, it is:
 
 ```php
+use Contenir\Preview\Clock\SystemClock;
 use Contenir\Preview\PreviewContext;
 use Contenir\Preview\PreviewEntry;
-use Contenir\Preview\Replay\CacheReplayGuard;
+use Contenir\Preview\Replay\FileReplayGuard;
 use Contenir\Preview\Resolver\PathResolver;
 use Contenir\Preview\Resolver\ResolverRegistry;
+use Contenir\Preview\Resolver\RouteResolver;
 use Contenir\Preview\Token\TokenVerifier;
 
+$clock   = new SystemClock();
 $context = new PreviewContext();
 $entry   = new PreviewEntry(
-    new TokenVerifier($config, $clock, new CacheReplayGuard($cache, $clock)),
+    new TokenVerifier($config, $clock, new FileReplayGuard(sys_get_temp_dir(), $clock)),
     new ResolverRegistry([
-        'site.page.home'       => new PathResolver('/{slug}'),
-        'library.news.articles' => new PathResolver('/news/{slug}'),
+        'site.page.home'        => new PathResolver('/{slug}'),
+        'library.news.articles' => new RouteResolver('news/article', ['slug' => '{slug}']),
     ]),
     $context,
 );
 
 $target = $entry->open($method, $postedToken); // throws InvalidPreview with its HTTP status
-// render $target (a path or a named route) as the site normally would
+// render $target as the site normally would: a path, a named route, or a handler it dispatches
 ```
+
+A resolver can also answer with `PreviewTarget::handler($controllerOrMiddleware, $params)`, which the
+adapter dispatches without routing: the way to preview drafts, records not saved yet, and sites
+whose routes are built from published records (contenir-workflow ships such a resolver).
+
+Accepted tokens are remembered so each is used once: `FileReplayGuard` for one server (any existing
+directory; it touches only its own files), `CacheReplayGuard` over a shared PSR-16 cache for several.
+`InMemoryReplayGuard` lasts one process and suits only long-running servers and tests.
 
 Wherever the site loads a previewable section's records, it lets the context lay the preview's
 values over them:

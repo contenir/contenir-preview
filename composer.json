@@ -31,11 +31,12 @@
         "psr-4": { "Contenir\\Preview\\Tests\\": "tests/" }
     },
     "scripts": {
-        "check": ["@cs-check", "@static-analysis", "@test"],
+        "check": ["@cs-check", "@static-analysis", "@test", "@test-integration"],
         "cs-check": ["mago format --check", "mago lint"],
         "cs-fix": ["mago format", "mago lint --fix"],
         "static-analysis": "mago analyze",
         "test": "phpunit --colors=always --testsuite unit",
+        "test-integration": "phpunit --colors=always --testsuite integration",
         "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
         "mutation-test": "infection"
     },
