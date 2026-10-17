@@ -1,0 +1,48 @@
+{
+    "name": "contenir/contenir-preview",
+    "description": "The Contenir preview protocol: signed preview tokens from the CMS, their verification on a site, and the request-scoped context a site renders a previewed record from.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["contenir", "cms", "preview"],
+    "require": {
+        "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+        "psr/clock": "^1.0",
+        "psr/simple-cache": "^3.0"
+    },
+    "require-dev": {
+        "contenir/contenir-qa-tools": "0.1.x-dev",
+        "infection/infection": "^0.35.6",
+        "phpunit/phpunit": "^11.5"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../contenir-qa-tools",
+            "canonical": false,
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Contenir\\Preview\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Contenir\\Preview\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "check": ["@cs-check", "@static-analysis", "@test"],
+        "cs-check": ["mago format --check", "mago lint"],
+        "cs-fix": ["mago format", "mago lint --fix"],
+        "static-analysis": "mago analyze",
+        "test": "phpunit --colors=always --testsuite unit",
+        "test-coverage": "phpunit --colors=always --coverage-clover clover.xml",
+        "mutation-test": "infection"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "infection/extension-installer": true
+        }
+    }
+}
