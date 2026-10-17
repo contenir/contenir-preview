@@ -34,6 +34,9 @@
         "sort-packages": true,
         "allow-plugins": {
             "infection/extension-installer": true
+        },
+        "platform": {
+            "php": "8.3.99"
         }
     }
 }
