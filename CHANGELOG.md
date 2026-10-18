@@ -19,3 +19,7 @@ adheres to [Semantic Versioning](https://semver.org/).
   `ResolverRegistry`.
 - `FileReplayGuard`, `CacheReplayGuard` (any PSR-16 cache, 1.x to 3.x) and
   `InMemoryReplayGuard`, and a `SystemClock`.
+- `ConfigProvider` and the `Container` namespace: the services a renderer builds
+  from the application's `contenir_preview` configuration, for any PSR-11
+  container, shared by the framework adapters.
+- `PreviewMarker`, the visible badge on a previewed page.

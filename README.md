@@ -93,6 +93,18 @@ and, for a record not saved yet, `$context->unsaved('site.page.home')` gives its
 Every preview answer carries `PreviewResponse::headers()` (no caching or indexing, framed only by
 the CMS), and a refusal answers with `PreviewResponse::refusal()` and the refusal's status.
 
+## Container services
+
+`ConfigProvider` registers the services a renderer needs in any PSR-11 container, built from the
+application's `contenir_preview` configuration (`Container\PreviewOptions` documents its shape):
+the options, the clock, the replay guard (a PSR-16 cache when one is named, otherwise files), the
+resolver registry, the token verifier, the entry, the response and the preview context. Each
+section's resolver is a path pattern (`/{slug}`), a named route with its parameters, or the name of
+a `PreviewResolverInterface` service. Framework adapters merge `getDependencies()` into their own
+configuration and add what their framework needs.
+
+`PreviewMarker::mark()` places the visible "Preview" badge in a page's HTML.
+
 ## Quality
 
 ```sh
