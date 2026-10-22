@@ -14,8 +14,8 @@ The protocol itself is in [docs/protocol.md](docs/protocol.md).
 
 ## Shared configuration
 
-Both sides build the same `PreviewConfig`: who issues tokens, for which site (its base URL), and the
-secrets that sign them by key id (at least 32 bytes each).
+Both sides build the same `PreviewConfig`: who issues tokens, for which site (both origins, with no
+path), and the secrets that sign them by key id (at least 32 bytes each).
 
 ```php
 use Contenir\Preview\PreviewConfig;
@@ -41,7 +41,7 @@ $token = (new TokenSigner($config, $clock))->sign(
 ```
 
 Post the token as the `contenir_preview` field into a frame aimed at `$config->endpoint()`: the
-site's base URL (the `audience`) with the protocol's fixed path, `/api/resource/preview`. Sign a new
+site's origin (the `audience`) with the protocol's fixed path, `/api/resource/preview`. Sign a new
 token each time the preview refreshes: each is accepted once and lives five minutes.
 
 ## On a site: verifying and rendering

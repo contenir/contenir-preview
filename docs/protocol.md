@@ -25,12 +25,20 @@ Both sides hold the same:
 |------------|-----------------------------------------------------------------------------|
 | `key_id`   | Names the secret, so a new one can be introduced before the old is retired. |
 | `secret`   | At least 32 bytes of random data, never sent over the wire.                 |
-| `issuer`   | The CMS's identifier, usually its base URL (`https://admin.example.com`).   |
-| `audience` | The site's base URL (`https://www.example.com`), which also names it.        |
+| `issuer`   | The CMS's origin (`https://admin.example.com`), which names it.             |
+| `audience` | The site's origin (`https://www.example.com`), which also names it.         |
 
 The site may accept several `key_id`s at once (while rotating); the CMS signs with one. Every
 site's **preview endpoint** is the fixed path `/api/resource/preview`, so the CMS posts to
 `{audience}/api/resource/preview`.
+
+`issuer` and `audience` are **origins**: a scheme, a host and an optional port, and nothing after
+them. Each names one side whole and is matched whole against the token's `iss` and `aud`, so both
+sides hold the same string. The issuer is also sent as the preview's `frame-ancestors` (§6, step 4),
+where a browser matches the framing document's *origin*: a source expression carrying a path matches
+nothing, so the preview would answer `200` and render as a blank frame, with only a console line to
+say why. A setting carrying a path, query or fragment is refused where it is read, before any token
+is signed or answered.
 
 ## 3. The preview token
 

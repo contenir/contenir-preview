@@ -7,10 +7,12 @@ namespace Contenir\Preview\Tests\Unit;
 use Contenir\Preview\PreviewConfig;
 use Contenir\Preview\Tests\TestAsset\Tokens;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
 use function str_repeat;
 
 /**
@@ -19,6 +21,31 @@ use function str_repeat;
 #[Group('unit')]
 final class PreviewConfigTest extends TestCase
 {
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function settingsThatAreNotOrigins(): array
+    {
+        return [
+            'a path'             => ['https://admin.test/admin'],
+            'a path and a slash' => ['https://admin.test/admin/'],
+            'a query'            => ['https://admin.test?preview=1'],
+            'a fragment'         => ['https://admin.test#preview'],
+            'credentials'        => ['https://editor:secret@admin.test'],
+            'no scheme'          => ['admin.test'],
+            'no host'            => ['https://'],
+            'a scheme, no host'  => ['file:///'],
+        ];
+    }
+
+    #[Test]
+    public function acceptsAnOriginWithAPortOrATrailingSlash(): void
+    {
+        $config = new PreviewConfig('https://admin.test:8443', 'https://www.test/', ['k' => Tokens::SHARED], 'k');
+
+        $this->assertSame(['https://admin.test:8443', 'https://www.test/'], [$config->issuer, $config->audience]);
+    }
+
     #[Test]
     public function acceptsASecretOfExactly32Bytes(): void
     {
@@ -57,6 +84,30 @@ final class PreviewConfigTest extends TestCase
         ];
 
         $this->assertSame(['https://www.test/api/resource/preview', 'https://www.test/api/resource/preview'], $paths);
+    }
+
+    #[Test]
+    #[DataProvider('settingsThatAreNotOrigins')]
+    public function refusesAnAudienceThatIsNotAnOrigin(string $audience): void
+    {
+        $this->expectExceptionObject(new InvalidArgumentException(sprintf(
+            'The audience "%s" must be an origin: a scheme, a host and an optional port, and nothing else.',
+            $audience,
+        )));
+
+        new PreviewConfig('https://admin.test', $audience, ['k' => Tokens::SHARED], 'k');
+    }
+
+    #[Test]
+    #[DataProvider('settingsThatAreNotOrigins')]
+    public function refusesAnIssuerThatIsNotAnOrigin(string $issuer): void
+    {
+        $this->expectExceptionObject(new InvalidArgumentException(sprintf(
+            'The issuer "%s" must be an origin: a scheme, a host and an optional port, and nothing else.',
+            $issuer,
+        )));
+
+        new PreviewConfig($issuer, 'https://www.test', ['k' => Tokens::SHARED], 'k');
     }
 
     #[Test]

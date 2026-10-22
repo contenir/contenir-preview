@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `PreviewConfig` refuses an `issuer` or `audience` that is more than an origin.
+  A path, query or fragment in either was taken as given and then broke every
+  preview: the issuer is sent as `frame-ancestors`, where a browser matches the
+  framing document's origin, so a preview answered `200` and rendered as a
+  blank frame.
+
+## [0.1.0] - 2026-10-18
+
 ### Added
 
 - The Contenir preview protocol, version 1 ([docs/protocol.md](docs/protocol.md)):
