@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-18
+
 ### Added
 
 - The Contenir preview protocol, version 1 ([docs/protocol.md](docs/protocol.md)):
