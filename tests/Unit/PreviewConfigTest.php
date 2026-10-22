@@ -34,6 +34,7 @@ final class PreviewConfigTest extends TestCase
             'credentials'        => ['https://editor:secret@admin.test'],
             'no scheme'          => ['admin.test'],
             'no host'            => ['https://'],
+            'a scheme, no host'  => ['file:///'],
         ];
     }
 
