@@ -38,6 +38,19 @@ final class PreviewEntryTest extends TestCase
     }
 
     #[Test]
+    public function opensAnEditorsPreviewAsNotShared(): void
+    {
+        $context = new PreviewContext();
+
+        $this->entry($context, ['site.page.home' => new PathResolver()])->open('POST', Tokens::sign(
+            Tokens::header(),
+            Tokens::payload(),
+        ));
+
+        $this->assertFalse($context->request()?->shared);
+    }
+
+    #[Test]
     public function opensAPostedPreviewAtItsPage(): void
     {
         $context = new PreviewContext();
