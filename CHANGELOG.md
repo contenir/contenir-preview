@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-10-27
 
 ### Changed
 
@@ -16,7 +16,6 @@ adheres to [Semantic Versioning](https://semver.org/).
   `CacheReplayGuard`, `InMemoryReplayGuard` and `ReplayGuardInterface`, in place of the
   `Contenir\Preview\Replay` classes, which are removed. The container's guard keeps the file and
   cache prefixes previews have always used.
-
 - `PreviewConfig` refuses an `issuer` or `audience` that is more than an origin.
   A path, query or fragment in either was taken as given and then broke every
   preview: the issuer is sent as `frame-ancestors`, where a browser matches the
