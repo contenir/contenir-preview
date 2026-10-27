@@ -97,12 +97,42 @@ and, for a record not saved yet, `$context->unsaved('site.page.home')` gives its
 Every preview answer carries `PreviewResponse::headers()` (no caching or indexing, framed only by
 the CMS), and a refusal answers with `PreviewResponse::refusal()` and the refusal's status.
 
+## Shared previews
+
+An editor can send a client a link to one record's draft, behind a six-character code, which opens
+until the end the editor chose (90 days at most) or until the CMS revokes it ([§9 of the
+protocol](docs/protocol.md#9-shared-previews)). Links live in the site database's `preview_share`
+table, created by the migration in `schema/` (`ConfigProvider::schemaPath()`, under
+`ConfigProvider::SCHEMA_NAMESPACE`).
+
+On the CMS, `Share\Shares` makes, lists, re-codes, revokes and prunes them:
+
+```php
+use Contenir\Preview\Share\PhpDbShareStore;
+use Contenir\Preview\Share\ShareId;
+use Contenir\Preview\Share\Shares;
+
+$shares = new Shares(new PhpDbShareStore($siteDatabase), $clock);
+$share  = $shares->create('library.projects.article', ['resource_id' => '7'], $ends, 'Jane, Acme', (string) $userId);
+
+ShareId::url($config->audience, $share->id); // https://www.example.com/preview/…
+$share->code;                                  // K7M4QX
+```
+
+On a site, a framework adapter hands each visit to `/preview/{id}` (`ShareId::fromPath()`) to
+`Share\ShareEntry`, and does what its `ShareVisit` says: render the target, show
+`PreviewResponse::codeForm()` or `wrongCodeForm()`, or set the pass cookie and redirect back. Every
+answer carries `PreviewResponse::shareHeaders()`. The record shows as it is saved, through the same
+preview context, and `PreviewRequest::$shared` tells a client's visit from an editor's preview.
+A site turns shared previews on by adding a `share` block to its `contenir_preview` configuration.
+
 ## Container services
 
 `ConfigProvider` registers the services a renderer needs in any PSR-11 container, built from the
 application's `contenir_preview` configuration (`Container\PreviewOptions` documents its shape):
 the options, the clock, the replay guard (a PSR-16 cache when one is named, otherwise files), the
-resolver registry, the token verifier, the entry, the response and the preview context. Each
+resolver registry, the token verifier, the entry, the response and the preview context; and, for
+shared previews, the store, the throttle and the share entry. Each
 section's resolver is a path pattern (`/{slug}`), a named route with its parameters, or the name of
 a `PreviewResolverInterface` service. Framework adapters merge `getDependencies()` into their own
 configuration and add what their framework needs.

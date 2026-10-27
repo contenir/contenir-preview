@@ -17,6 +17,7 @@ final class InvalidPreview extends RuntimeException
     public const int NOT_PREVIEWABLE = 404;
     public const int WRONG_METHOD    = 405;
     public const int REPLAYED        = 409;
+    public const int TOO_MANY_TRIES  = 429;
 
     private function __construct(
         string $reason,
@@ -40,13 +41,26 @@ final class InvalidPreview extends RuntimeException
         return new self('This preview has already been shown. Refresh the preview to see it again.', self::REPLAYED);
     }
 
+    /**
+     * A link that has ended or been revoked, which says neither, so no one learns which links were real.
+     */
+    public static function shareGone(): self
+    {
+        return new self('This preview link has expired or been withdrawn.', self::NOT_PREVIEWABLE);
+    }
+
+    public static function tooManyTries(): self
+    {
+        return new self('Too many tries. Try again in 15 minutes.', self::TOO_MANY_TRIES);
+    }
+
     public static function unauthenticated(string $reason): self
     {
         return new self($reason, self::UNAUTHENTICATED);
     }
 
-    public static function wrongMethod(): self
+    public static function wrongMethod(string $reason = 'A preview is posted, not fetched.'): self
     {
-        return new self('A preview is posted, not fetched.', self::WRONG_METHOD);
+        return new self($reason, self::WRONG_METHOD);
     }
 }

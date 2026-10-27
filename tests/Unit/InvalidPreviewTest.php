@@ -22,15 +22,26 @@ final class InvalidPreviewTest extends TestCase
     public static function refusalProvider(): array
     {
         return [
-            'malformed'       => [InvalidPreview::malformed('Bad.'), 400, 'Bad.'],
-            'unauthenticated' => [InvalidPreview::unauthenticated('Unsigned.'), 401, 'Unsigned.'],
-            'not previewable' => [InvalidPreview::notPreviewable('No page.'), 404, 'No page.'],
-            'fetched'         => [InvalidPreview::wrongMethod(), 405, 'A preview is posted, not fetched.'],
-            'replayed'        => [
+            'malformed'                 => [InvalidPreview::malformed('Bad.'), 400, 'Bad.'],
+            'unauthenticated'           => [InvalidPreview::unauthenticated('Unsigned.'), 401, 'Unsigned.'],
+            'not previewable'           => [InvalidPreview::notPreviewable('No page.'), 404, 'No page.'],
+            'fetched'                   => [InvalidPreview::wrongMethod(), 405, 'A preview is posted, not fetched.'],
+            'replayed'                  => [
                 InvalidPreview::replayed(),
                 409,
                 'This preview has already been shown. Refresh the preview to see it again.',
             ],
+            'a share gone'              => [
+                InvalidPreview::shareGone(),
+                404,
+                'This preview link has expired or been withdrawn.',
+            ],
+            'too many tries'            => [
+                InvalidPreview::tooManyTries(),
+                429,
+                'Too many tries. Try again in 15 minutes.',
+            ],
+            'a share fetched otherwise' => [InvalidPreview::wrongMethod('Get or post.'), 405, 'Get or post.'],
         ];
     }
 

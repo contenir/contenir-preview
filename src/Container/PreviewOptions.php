@@ -29,6 +29,7 @@ use function is_string;
  *                                                   // ['directory' => '/var/app/preview'], default the temp dir
  *     'clock'     => null,                          // a PSR-20 service, default the system's
  *     'marker'    => true,                          // the visible "Preview" badge
+ *     'share'     => [],                            // shared previews, on when named (see ShareOptions)
  * ],
  * ```
  */
@@ -36,6 +37,8 @@ final readonly class PreviewOptions
 {
     /**
      * @param array<string, string|array{route: string, params?: array<string, string>}> $resolvers
+     *
+     * @mago-expect lint:excessive-parameter-list One parameter per block of the configuration.
      */
     private function __construct(
         public PreviewConfig $config,
@@ -43,6 +46,7 @@ final readonly class PreviewOptions
         public ReplayOptions $replay,
         public ?string $clock,
         public bool $marker,
+        public ?ShareOptions $share,
     ) {}
 
     /**
@@ -73,6 +77,7 @@ final readonly class PreviewOptions
             is_bool($marker)
                 ? $marker
                 : throw new InvalidConfiguration('contenir_preview.marker must be true or false.'),
+            ShareOptions::from($options['share'] ?? null),
         );
     }
 
