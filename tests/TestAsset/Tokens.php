@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Contenir\Preview\Tests\TestAsset;
 
 use Contenir\Preview\PreviewConfig;
-use Contenir\Preview\Token\Base64Url;
+use Contenir\SiteToken\Base64Url;
 use SensitiveParameter;
 
 use function hash_hmac;

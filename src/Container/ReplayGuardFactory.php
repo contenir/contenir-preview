@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Contenir\Preview\Container;
 
-use Contenir\Preview\Replay\CacheReplayGuard;
-use Contenir\Preview\Replay\FileReplayGuard;
-use Contenir\Preview\Replay\ReplayGuardInterface;
+use Contenir\SiteToken\Replay\CacheReplayGuard;
+use Contenir\SiteToken\Replay\FileReplayGuard;
+use Contenir\SiteToken\Replay\ReplayGuardInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -20,6 +20,12 @@ use function sys_get_temp_dir;
  */
 final class ReplayGuardFactory
 {
+    /** Starts each accepted preview's file name, as it always has. */
+    public const string FILE_PREFIX = 'contenir-preview-';
+
+    /** Starts each accepted preview's cache key, as it always has. */
+    public const string CACHE_PREFIX = 'contenir_preview_';
+
     /**
      * @throws ContainerExceptionInterface
      * @throws InvalidConfiguration
@@ -30,7 +36,11 @@ final class ReplayGuardFactory
         $clock   = Service::get($container, ClockInterface::class, ClockFactory::SERVICE);
 
         return null === $options->replay->cache
-            ? new FileReplayGuard($options->replay->directory ?? sys_get_temp_dir(), $clock)
-            : new CacheReplayGuard(Service::get($container, CacheInterface::class, $options->replay->cache), $clock);
+            ? new FileReplayGuard($options->replay->directory ?? sys_get_temp_dir(), $clock, self::FILE_PREFIX)
+            : new CacheReplayGuard(
+                Service::get($container, CacheInterface::class, $options->replay->cache),
+                $clock,
+                self::CACHE_PREFIX,
+            );
     }
 }

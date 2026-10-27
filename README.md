@@ -52,7 +52,7 @@ A framework adapter does this for you. Underneath, it is:
 use Contenir\Preview\Clock\SystemClock;
 use Contenir\Preview\PreviewContext;
 use Contenir\Preview\PreviewEntry;
-use Contenir\Preview\Replay\FileReplayGuard;
+use Contenir\SiteToken\Replay\FileReplayGuard;
 use Contenir\Preview\Resolver\PathResolver;
 use Contenir\Preview\Resolver\ResolverRegistry;
 use Contenir\Preview\Resolver\RouteResolver;
@@ -61,7 +61,7 @@ use Contenir\Preview\Token\TokenVerifier;
 $clock   = new SystemClock();
 $context = new PreviewContext();
 $entry   = new PreviewEntry(
-    new TokenVerifier($config, $clock, new FileReplayGuard(sys_get_temp_dir(), $clock)),
+    new TokenVerifier($config, $clock, new FileReplayGuard(sys_get_temp_dir(), $clock, 'contenir-preview-')),
     new ResolverRegistry([
         'site.page.home'        => new PathResolver('/{slug}'),
         'library.news.articles' => new RouteResolver('news/article', ['slug' => '{slug}']),
@@ -79,7 +79,11 @@ whose routes are built from published records (contenir-workflow ships such a re
 
 Accepted tokens are remembered so each is used once: `FileReplayGuard` for one server (any existing
 directory; it touches only its own files), `CacheReplayGuard` over a shared PSR-16 cache for several.
-`InMemoryReplayGuard` lasts one process and suits only long-running servers and tests.
+`InMemoryReplayGuard` lasts one process and suits only long-running servers and tests. The guards,
+and the signing and checking of the token itself, come from
+[`contenir/contenir-site-token`](https://github.com/contenir/contenir-site-token), which other
+protocols between the CMS and a site share; this package adds the record and the preview's own
+wording for each refusal.
 
 Wherever the site loads a previewable section's records, it lets the context lay the preview's
 values over them:

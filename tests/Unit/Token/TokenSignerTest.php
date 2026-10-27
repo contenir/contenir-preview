@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Contenir\Preview\Tests\Unit\Token;
 
 use Contenir\Preview\PreviewRecord;
-use Contenir\Preview\Replay\InMemoryReplayGuard;
 use Contenir\Preview\Tests\TestAsset\FrozenClock;
 use Contenir\Preview\Tests\TestAsset\Tokens;
-use Contenir\Preview\Token\Base64Url;
 use Contenir\Preview\Token\TokenSigner;
 use Contenir\Preview\Token\TokenVerifier;
+use Contenir\SiteToken\Base64Url;
+use Contenir\SiteToken\Replay\InMemoryReplayGuard;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

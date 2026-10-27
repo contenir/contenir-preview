@@ -13,9 +13,9 @@ use Contenir\Preview\Container\PreviewResponseFactory;
 use Contenir\Preview\Container\ReplayGuardFactory;
 use Contenir\Preview\Container\ResolverRegistryFactory;
 use Contenir\Preview\Container\TokenVerifierFactory;
-use Contenir\Preview\Replay\ReplayGuardInterface;
 use Contenir\Preview\Resolver\ResolverRegistry;
 use Contenir\Preview\Token\TokenVerifier;
+use Contenir\SiteToken\Replay\ReplayGuardInterface;
 
 /**
  * The services a renderer builds from the application's `contenir_preview` configuration, for
