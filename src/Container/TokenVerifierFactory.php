@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Contenir\Preview\Container;
 
-use Contenir\Preview\Replay\ReplayGuardInterface;
 use Contenir\Preview\Token\TokenVerifier;
+use Contenir\SiteToken\Replay\ReplayGuardInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;

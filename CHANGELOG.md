@@ -8,6 +8,15 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Tokens are signed and checked by `contenir/contenir-site-token`, which other protocols between
+  the CMS and a site share. The tokens, the order of the checks and every refusal's status and
+  wording are unchanged. `PreviewConfig` holds the shared settings as `keys` (a `SiteKeys`) and
+  names the protocol's tokens with `tokenType()`.
+- The replay guards are contenir-site-token's: `Contenir\SiteToken\Replay\FileReplayGuard`,
+  `CacheReplayGuard`, `InMemoryReplayGuard` and `ReplayGuardInterface`, in place of the
+  `Contenir\Preview\Replay` classes, which are removed. The container's guard keeps the file and
+  cache prefixes previews have always used.
+
 - `PreviewConfig` refuses an `issuer` or `audience` that is more than an origin.
   A path, query or fragment in either was taken as given and then broke every
   preview: the issuer is sent as `frame-ancestors`, where a browser matches the

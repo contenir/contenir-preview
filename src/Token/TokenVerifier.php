@@ -7,32 +7,63 @@ namespace Contenir\Preview\Token;
 use Contenir\Preview\InvalidPreview;
 use Contenir\Preview\PreviewConfig;
 use Contenir\Preview\PreviewRequest;
-use Contenir\Preview\Replay\ReplayGuardInterface;
-use DateTimeImmutable;
+use Contenir\SiteToken\Refusal;
+use Contenir\SiteToken\RefusedToken;
+use Contenir\SiteToken\Replay\ReplayGuardInterface;
+use Contenir\SiteToken\TokenVerifier as SiteTokenVerifier;
 use Psr\Clock\ClockInterface;
 use SensitiveParameter;
-
-use function hash_equals;
-use function hash_hmac;
-use function is_string;
 
 /**
  * A site's side: checks a posted preview token the way §5 lays out, in that order, and turns it
  * into a PreviewRequest, or refuses it with the status the protocol gives each failure.
+ * contenir-site-token checks the token itself (steps 1 to 6); this checks the record (step 7) and
+ * words each refusal for an editor.
  */
 final readonly class TokenVerifier
 {
-    private ClaimRules $claims;
-
-    private Lifetime $lifetime;
+    private SiteTokenVerifier $verifier;
 
     public function __construct(
-        private PreviewConfig $config,
+        PreviewConfig $config,
         ClockInterface $clock,
-        private ReplayGuardInterface $replay,
+        ReplayGuardInterface $replay,
     ) {
-        $this->claims   = new ClaimRules($config);
-        $this->lifetime = new Lifetime($clock);
+        $this->verifier = new SiteTokenVerifier($config->keys, $clock, $replay);
+    }
+
+    /**
+     * The protocol's own words for each refusal (§5), with its status.
+     */
+    private static function refusal(Refusal $refusal): InvalidPreview
+    {
+        return match ($refusal) {
+            Refusal::Missing        => InvalidPreview::malformed('No preview was sent.'),
+            Refusal::TooLarge       => InvalidPreview::malformed('The preview is too large.'),
+            Refusal::Malformed      => InvalidPreview::malformed('The preview is not a preview token.'),
+            Refusal::NoTokenId      => InvalidPreview::malformed('The preview has no id.'),
+            Refusal::WrongSigning => InvalidPreview::unauthenticated(
+                'The preview is not signed the way this site expects.',
+            ),
+            Refusal::UnknownKey => InvalidPreview::unauthenticated(
+                'The preview is signed with a key this site does not hold.',
+            ),
+            Refusal::BadSignature   => InvalidPreview::unauthenticated('The preview\'s signature does not match.'),
+            Refusal::WrongVersion => InvalidPreview::unauthenticated(
+                'The preview uses a protocol version this site does not know.',
+            ),
+            Refusal::WrongParties   => InvalidPreview::unauthenticated('The preview was not issued for this site.'),
+            Refusal::BadLifetime => InvalidPreview::unauthenticated(
+                'The preview\'s lifetime is not one this site accepts.',
+            ),
+            Refusal::IssuedInFuture => InvalidPreview::unauthenticated(
+                'The preview was issued in the future. Check the clocks of the CMS and the site.',
+            ),
+            Refusal::Expired => InvalidPreview::unauthenticated(
+                'The preview has expired. Refresh the preview to see it again.',
+            ),
+            Refusal::Replayed       => InvalidPreview::replayed(),
+        };
     }
 
     /**
@@ -40,47 +71,18 @@ final readonly class TokenVerifier
      */
     public function verify(#[SensitiveParameter] ?string $token): PreviewRequest
     {
-        $parsed   = ParsedToken::parse($token);
-        $expected = hash_hmac('sha256', $parsed->signed, $this->secretFor($parsed->header), binary: true);
-        if (null === $parsed->signature || ! hash_equals($expected, $parsed->signature)) {
-            throw InvalidPreview::unauthenticated('The preview\'s signature does not match.');
+        try {
+            $verified = $this->verifier->verify(PreviewConfig::tokenType(), $token);
+        } catch (RefusedToken $refused) {
+            throw self::refusal($refused->refusal);
         }
-
-        $this->claims->check($parsed->payload);
-        [$issuedAt, $expiresAt] = $this->lifetime->of($parsed->payload);
-        $tokenId = $this->claims->tokenId($parsed->payload);
-        if (! $this->replay->claim($tokenId, $expiresAt)) {
-            throw InvalidPreview::replayed();
-        }
-
-        /** @var mixed $userId */
-        $userId = $parsed->payload['sub'] ?? null;
 
         return new PreviewRequest(
-            RecordClaim::parse($parsed->payload['rec'] ?? null),
-            is_string($userId) ? $userId : '',
-            $tokenId,
-            (new DateTimeImmutable())->setTimestamp($issuedAt),
-            (new DateTimeImmutable())->setTimestamp($expiresAt),
-        );
-    }
-
-    /**
-     * @param array<array-key, mixed> $header
-     * @throws InvalidPreview
-     */
-    private function secretFor(array $header): string
-    {
-        if ('HS256' !== ($header['alg'] ?? null) || TokenSigner::TYPE !== ($header['typ'] ?? null)) {
-            throw InvalidPreview::unauthenticated('The preview is not signed the way this site expects.');
-        }
-
-        /** @var mixed $keyId */
-        $keyId  = $header['kid'] ?? null;
-        $secret = is_string($keyId) ? $this->config->secret($keyId) : null;
-
-        return $secret ?? throw InvalidPreview::unauthenticated(
-            'The preview is signed with a key this site does not hold.',
+            RecordClaim::parse($verified->claims['rec'] ?? null),
+            $verified->subject,
+            $verified->tokenId,
+            $verified->issuedAt,
+            $verified->expiresAt,
         );
     }
 }

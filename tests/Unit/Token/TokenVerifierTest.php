@@ -6,11 +6,11 @@ namespace Contenir\Preview\Tests\Unit\Token;
 
 use Contenir\Preview\InvalidPreview;
 use Contenir\Preview\PreviewRecord;
-use Contenir\Preview\Replay\InMemoryReplayGuard;
 use Contenir\Preview\Tests\TestAsset\FrozenClock;
 use Contenir\Preview\Tests\TestAsset\Tokens;
-use Contenir\Preview\Token\Base64Url;
 use Contenir\Preview\Token\TokenVerifier;
+use Contenir\SiteToken\Base64Url;
+use Contenir\SiteToken\Replay\InMemoryReplayGuard;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
