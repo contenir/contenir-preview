@@ -4,8 +4,61 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "32e6a26b3fbb1ed3d92d8554db8eba28",
+    "content-hash": "d991d632206a2cd1e8d1569428e08f2f",
     "packages": [
+        {
+            "name": "contenir/contenir-site-token",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/contenir/contenir-site-token.git",
+                "reference": "8c016bf69206797f4a9fdc4ad82473ee240d6ac0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/contenir/contenir-site-token/zipball/8c016bf69206797f4a9fdc4ad82473ee240d6ac0",
+                "reference": "8c016bf69206797f4a9fdc4ad82473ee240d6ac0",
+                "shasum": ""
+            },
+            "require": {
+                "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+                "psr/clock": "^1.0",
+                "psr/simple-cache": "^1.0 || ^2.0 || ^3.0"
+            },
+            "require-dev": {
+                "contenir/contenir-qa-tools": "0.1.x-dev",
+                "infection/infection": "^0.35.6",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Contenir\\SiteToken\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Signed one-time tokens between the Contenir CMS and a site: compact HS256 tokens with key rotation, a bounded lifetime and single use, shared by the preview and cache protocols.",
+            "keywords": [
+                "JWS",
+                "cms",
+                "contenir",
+                "hmac",
+                "token"
+            ],
+            "support": {
+                "issues": "https://github.com/contenir/contenir-site-token/issues",
+                "source": "https://github.com/contenir/contenir-site-token/tree/v0.1.0"
+            },
+            "time": "2026-10-27T00:37:03+00:00"
+        },
         {
             "name": "psr/clock",
             "version": "1.0.0",
@@ -4354,9 +4407,9 @@
     "platform": {
         "php": "~8.3.0 || ~8.4.0 || ~8.5.0"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "platform-overrides": {
         "php": "8.3.99"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
