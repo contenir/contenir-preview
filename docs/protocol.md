@@ -17,6 +17,8 @@ renderer for each framework.
 
 Nothing in the token is stored by the site, and a preview never changes the site's data.
 
+An editor can also send a client a link to a record's draft, behind a code (§9).
+
 ## 2. Shared configuration
 
 Both sides hold the same:
@@ -179,3 +181,90 @@ Links followed inside the frame lead to the site's ordinary pages, not previews.
 
 `ver` and the `typ` header name the protocol version. A renderer answers a version it does not
 know with `400`. A change that an existing renderer would misread is a new version.
+
+## 9. Shared previews
+
+An editor can also send someone outside the CMS, such as a client, a **link** to one record's
+draft. A link opens many times, until the end the editor chose or until the CMS revokes it, and only
+for a visitor who enters the link's **code**. A shared preview signs no token: the CMS and the site
+share the site's database, so the link is a row there that the site reads on every visit, and
+revoking it deletes the row. The editor's own previews (§1 to §8) are unchanged.
+
+### 9.1 The link
+
+| Part      | Rule                                                                                       |
+|-----------|--------------------------------------------------------------------------------------------|
+| id        | 32 random bytes as base64url without padding: 43 characters. Compared byte for byte.        |
+| code      | 6 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no 0/O, 1/I/L).                        |
+| record    | The record's section and primary key, as in §3.2. Only a saved record can be shared.        |
+| note      | Who the link is for, as the editor put it; up to 255 characters, or none.                   |
+| creator   | The CMS user who made it.                                                                  |
+| ends      | Chosen by the editor: after now and at most 90 days after the link is made.                 |
+
+The CMS keeps links in the site database's `preview_share` table, which this package's migration
+creates (the CMS runs it). The site only reads the table.
+
+The link is `{audience}/preview/{id}`. The editor sends the link and the code, together or apart.
+
+### 9.2 What the CMS does
+
+- **Make** a link: a fresh id and code, for a saved record, ending when the editor chose.
+- **List** a record's live links, ending soonest first.
+- **New code**: replaces a live link's code, so the old code and every pass made with it (§9.3)
+  stop working.
+- **Revoke**: deletes the link, so it stops opening at once.
+- **Forget** a record's links when the record is deleted, and **prune** links that have ended.
+
+### 9.3 Opening a link
+
+The renderer takes only `GET` and `POST` to `/preview/` followed by exactly 43 base64url
+characters, before routing, so a page of the site's own at `/preview` still routes. Any other
+method → `405`. Then:
+
+1. It finds the link. A link that is missing or has ended → `404`, "This preview link has expired
+   or been withdrawn.", the same for both.
+2. On a `GET` with a **pass** that matches, it shows the record (§9.4). Without one, it answers
+   `200` with a form asking for the code.
+3. On a `POST` it checks the posted `code`, ignoring case, spaces and dashes, in constant time:
+   - right → `303` back to the link, setting the pass;
+   - wrong → `401` with the form again, saying the code isn't right;
+   - after 5 wrong codes from one address in 15 minutes, or 25 from any addresses, → `429`,
+     "Too many tries. Try again in 15 minutes.", until 15 minutes after the first of them. Each
+     link counts apart.
+
+The **pass** is a cookie, `contenir_share`, holding base64url of
+`HMAC-SHA256(secret, id + "." + code + "." + ends)`, with `ends` in seconds since the epoch, under
+the key the site signs with. It is sent with `Path=/preview/{id}`, `HttpOnly`, `SameSite=Lax`,
+`Secure` on an HTTPS site, and expires when the link does. A pass made under any key the site
+holds is accepted, so rotating keys turns no one away; a new code or a new end turns every pass
+away.
+
+### 9.4 Rendering
+
+The renderer begins the preview context (§6, step 2) with the link's record and **no values**, so
+the record shows as it is saved, whatever its status, and resolves and renders it as in §6. The
+preview request says it is **shared**, so the site can tell a visitor's view from an editor's
+preview (to leave it out of analytics, say). The request it renders carries
+`Cache-Control: no-cache, no-store`, so no page cache serves or stores it.
+
+Every answer to a link (the page, the form and each refusal) carries:
+
+```
+Cache-Control: no-store, private
+X-Robots-Tag: noindex, nofollow
+Referrer-Policy: no-referrer
+Content-Security-Policy: frame-ancestors 'none'
+```
+
+A shared preview shows the record as saved, never the editor's unsaved changes, and only that
+record: others it lists are shown as the site shows them to anyone. Links followed from it lead to
+the site's ordinary pages.
+
+### 9.5 Security
+
+- Anyone with the link and the code sees the draft until the link ends or is revoked: that is what
+  a link is for. Send the code apart from the link where that matters.
+- The id cannot be guessed, and the throttle makes guessing a code for a known link take thousands
+  of years.
+- The site never writes the table; wrong codes are counted where accepted tokens are remembered.
+- Links are not signed, so rotating keys revokes none; revoke a link, or a record's links, instead.

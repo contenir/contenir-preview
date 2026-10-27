@@ -13,16 +13,26 @@ use Contenir\Preview\Container\PreviewOptionsFactory;
 use Contenir\Preview\Container\PreviewResponseFactory;
 use Contenir\Preview\Container\ReplayGuardFactory;
 use Contenir\Preview\Container\ResolverRegistryFactory;
+use Contenir\Preview\Container\ShareEntryFactory;
+use Contenir\Preview\Container\ShareStoreFactory;
+use Contenir\Preview\Container\ShareThrottleFactory;
 use Contenir\Preview\Container\TokenVerifierFactory;
 use Contenir\Preview\PreviewContext;
 use Contenir\Preview\PreviewEntry;
 use Contenir\Preview\PreviewResponse;
 use Contenir\Preview\Resolver\ResolverRegistry;
+use Contenir\Preview\Schema\Version20261027000100CreatePreviewShare;
+use Contenir\Preview\Share\ShareEntry;
+use Contenir\Preview\Share\ShareStoreInterface;
+use Contenir\Preview\Share\Throttle\ShareThrottle;
 use Contenir\Preview\Token\TokenVerifier;
 use Contenir\SiteToken\Replay\ReplayGuardInterface;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+
+use function dirname;
 
 /**
  * The services a renderer registers, for any PSR-11 container.
@@ -36,6 +46,18 @@ final class ConfigProviderTest extends TestCase
         $factory = new PreviewContextFactory();
 
         static::assertNotSame($factory(), $factory());
+    }
+
+    #[Test]
+    public function namesTheMigrationsTheHostRuns(): void
+    {
+        $this->assertSame(
+            [dirname(__DIR__, levels: 2) . '/schema', ConfigProvider::SCHEMA_NAMESPACE],
+            [
+                ConfigProvider::schemaPath(),
+                (new ReflectionClass(Version20261027000100CreatePreviewShare::class))->getNamespaceName(),
+            ],
+        );
     }
 
     #[Test]
@@ -63,6 +85,14 @@ final class ConfigProviderTest extends TestCase
                         PreviewEntry::class         => PreviewEntryFactory::class,
                         PreviewResponse::class      => PreviewResponseFactory::class,
                         PreviewContext::class       => PreviewContextFactory::class,
+                        ShareStoreInterface::class  => ShareStoreFactory::class,
+                        ShareThrottle::class        => ShareThrottleFactory::class,
+                        ShareEntry::class           => ShareEntryFactory::class,
+                    ],
+                ],
+                'contenir'     => [
+                    'schema_migrations' => [
+                        ConfigProvider::SCHEMA_NAMESPACE => dirname(__DIR__, levels: 2) . '/schema',
                     ],
                 ],
             ],

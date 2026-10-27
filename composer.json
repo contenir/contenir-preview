@@ -1,12 +1,14 @@
 {
     "name": "contenir/contenir-preview",
-    "description": "The Contenir preview protocol: signed preview tokens from the CMS, their verification on a site, and the request-scoped context a site renders a previewed record from.",
+    "description": "The Contenir preview protocol: signed preview tokens from the CMS, their verification on a site, the request-scoped context a site renders a previewed record from, and shared preview links behind a code.",
     "type": "library",
     "license": "MIT",
     "keywords": ["contenir", "cms", "preview"],
     "require": {
         "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
         "contenir/contenir-site-token": "^0.1",
+        "peptolab/phpdb-migration": "^0.2",
+        "php-db/phpdb": "^0.6.0",
         "psr/clock": "^1.0",
         "psr/container": "^1.1 || ^2.0",
         "psr/simple-cache": "^1.0 || ^2.0 || ^3.0"
@@ -14,10 +16,12 @@
     "require-dev": {
         "contenir/contenir-qa-tools": "0.1.x-dev",
         "infection/infection": "^0.35.6",
+        "php-db/phpdb-mysql": "0.5.x-dev",
+        "php-db/phpdb-sqlite": "0.3.x-dev",
         "phpunit/phpunit": "^11.5"
     },
     "autoload": {
-        "psr-4": { "Contenir\\Preview\\": "src/" }
+        "psr-4": { "Contenir\\Preview\\": "src/", "Contenir\\Preview\\Schema\\": "schema/" }
     },
     "autoload-dev": {
         "psr-4": { "Contenir\\Preview\\Tests\\": "tests/" }
@@ -43,7 +47,9 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.1.x-dev"
+            "dev-main": "0.3.x-dev"
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

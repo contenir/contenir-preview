@@ -7,6 +7,7 @@ namespace Contenir\Preview\Tests\Unit\Container;
 use Contenir\Preview\Container\InvalidConfiguration;
 use Contenir\Preview\Container\PreviewOptions;
 use Contenir\Preview\Tests\TestAsset\Previews;
+use PhpDb\Adapter\AdapterInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -80,6 +81,11 @@ final class PreviewOptionsTest extends TestCase
                 $with(['resolvers' => ['/{slug}']]),
                 'contenir_preview.resolvers must map sections to resolvers.',
             ],
+            'share not a map'           => [$with(['share' => true]), 'contenir_preview.share must be an array.'],
+            'a share adapter not named' => [
+                $with(['share' => ['adapter' => '']]),
+                'contenir_preview.share.adapter must be a non-empty string.',
+            ],
         ];
     }
 
@@ -101,6 +107,12 @@ final class PreviewOptionsTest extends TestCase
     }
 
     #[Test]
+    public function leavesSharedPreviewsOffUntilTheyAreNamed(): void
+    {
+        $this->assertNull(PreviewOptions::fromAppConfig(Previews::appConfig())->share);
+    }
+
+    #[Test]
     public function readsTheSharedConfiguration(): void
     {
         $config = PreviewOptions::fromAppConfig(Previews::appConfig())->config;
@@ -108,6 +120,20 @@ final class PreviewOptionsTest extends TestCase
         $this->assertSame(
             [Previews::ISSUER, Previews::AUDIENCE, ['2026-10' => Previews::SHARED], '2026-10'],
             [$config->issuer, $config->audience, $config->secrets, $config->signWith],
+        );
+    }
+
+    #[Test]
+    public function readsTheSharedPreviewsDatabase(): void
+    {
+        $this->assertSame(
+            [AdapterInterface::class, 'SiteDb'],
+            [
+                PreviewOptions::fromAppConfig(Previews::appConfig(['share' => []]))->share?->adapter,
+                PreviewOptions::fromAppConfig(Previews::appConfig(['share' => [
+                    'adapter' => 'SiteDb',
+                ]]))->share?->adapter,
+            ],
         );
     }
 

@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Shared previews ([§9 of the protocol](docs/protocol.md#9-shared-previews)): an editor sends a
+  client a link to one record's draft, at `/preview/{id}` on the site, which opens behind a
+  six-character code until the end the editor chose (90 days at most) or until the CMS revokes it.
+  `Share\Shares` makes, lists, re-codes, revokes and prunes links on the CMS; `Share\ShareEntry`
+  answers a visit on a site; `Share\SharePass` is the cookie that lets a visitor back in;
+  `Share\Throttle\ShareThrottle` slows down guessing a code.
+- Links are kept in the site database's `preview_share` table by `Share\PhpDbShareStore`. The
+  migration that creates it is in `schema/`, listed under `contenir.schema_migrations` by
+  `ConfigProvider` for the host's migration runner.
+- `contenir_preview.share` turns shared previews on for a site, naming the database adapter
+  (`PhpDb\Adapter\AdapterInterface` by default). `ConfigProvider` registers the store, the
+  throttle and the share entry.
+- `PreviewRequest::$shared` says a preview is a client's visit to a link, not an editor's preview.
+- `PreviewResponse::shareHeaders()`, `codeForm()` and `wrongCodeForm()`; `InvalidPreview::shareGone()`
+  and `tooManyTries()`, and `wrongMethod()` takes a reason.
+
+### Changed
+
+- Requires `php-db/phpdb` and `peptolab/phpdb-migration`, for the links' table.
+
 ## [0.2.0] - 2026-10-27
 
 ### Changed
